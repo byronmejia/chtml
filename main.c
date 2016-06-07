@@ -94,6 +94,9 @@ int main(int argc, char *argv[]) {
 	}
 	cur_block->end = pos - 2;
 
+	/**
+	 * Writing the C file
+	 */
 	rewind(fp);
 	FILE *out = fopen("temp.c", "w");
 	if(out == NULL) {
@@ -102,15 +105,18 @@ int main(int argc, char *argv[]) {
 	}else {
 		fputs("#include <stdio.h>\nint main(int argc, char *argv[]){",
 			out);
-		char buffer[512];
+		char buffer[512]; // Block buffer
 		memset(buffer, 0, 512);
 		cur_block = start_block;
+		// Go through linked list
 		while(cur_block->next_block != NULL) {
+			// Read block
 			n = fread(buffer, 1,
 					cur_block->end - cur_block->start, fp);
-			printf("%s\n", buffer);
 
 			if(cur_block->type == BLOCKTYPE_HTML) {
+				// HTML code must be outputted (and escape
+				// new lines)
 				fputs("puts(\"", out);
 				for(int i = 0; i < strlen(buffer); i++) {
 					if(buffer[i] == '\n') {
@@ -121,18 +127,23 @@ int main(int argc, char *argv[]) {
 				}
 				fputs("\");", out);
 			}else {
+				// C code is fine as-is
 				fputs(buffer, out);
 			}
+			// Skip the <:: or ::> tags
 			n = fread(buffer, 1,
 				cur_block->next_block->start - cur_block->end,
 				fp);
 
+			// Next element
 			cur_block = cur_block->next_block;
+			// Reset buffer
 			memset(buffer, 0, strlen(buffer));
 		}
+		// Final item in the list
+		// XXX refactor, the repetition isn't nice
 		n = fread(buffer, 1,
 				cur_block->end - cur_block->start, fp);
-		printf("%s\n", buffer);
 
 		if(cur_block->type == BLOCKTYPE_HTML) {
 			fputs("puts(\"", out);
@@ -148,26 +159,18 @@ int main(int argc, char *argv[]) {
 			fputs(buffer, out);
 		}
 
-		cur_block = cur_block->next_block;
-		memset(buffer, 0, strlen(buffer));
-
 		fputs("return 0;}", out);
 		fclose(out);
 	}
 	
+	// Freeing the memory
 	cur_block = start_block;
 	block *tmp;
-	int count = 1;
 	while(cur_block->next_block != NULL) {
-		printf("Block %d: %d (%d -> %d)\n", count, cur_block->type,
-					cur_block->start, cur_block->end);
-		count++;
 		tmp = cur_block;
 		cur_block = cur_block->next_block;
 		free(tmp);
 	}
-	printf("Block %d: %d (%d -> %d)\n", count, cur_block->type,
-				cur_block->start, cur_block->end);
 	fclose(fp);
 	free(cur_char);
 	free(cur_block);
