@@ -111,7 +111,15 @@ int main(int argc, char *argv[]) {
 			printf("%s\n", buffer);
 
 			if(cur_block->type == BLOCKTYPE_HTML) {
-				fprintf(out, "puts(\"%s\");", buffer);
+				fputs("puts(\"", out);
+				for(int i = 0; i < strlen(buffer); i++) {
+					if(buffer[i] == '\n') {
+						fputs("\\n", out);
+					}else {
+						fputc(buffer[i], out);
+					}
+				}
+				fputs("\");", out);
 			}else {
 				fputs(buffer, out);
 			}
@@ -127,7 +135,15 @@ int main(int argc, char *argv[]) {
 		printf("%s\n", buffer);
 
 		if(cur_block->type == BLOCKTYPE_HTML) {
-			fprintf(out, "puts(\"%s\");", buffer);
+			fputs("puts(\"", out);
+			for(int i = 0; i < strlen(buffer); i++) {
+				if(buffer[i] == '\n') {
+					fputs("\\n", out);
+				}else {
+					fputc(buffer[i], out);
+				}
+			}
+			fputs("\");", out);
 		}else {
 			fputs(buffer, out);
 		}
