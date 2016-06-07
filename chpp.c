@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #define BLOCKTYPE_NONE	-1
 #define BLOCKTYPE_HTML	0
@@ -24,6 +25,19 @@ block *new_block() {
 	rblock->type = BLOCKTYPE_NONE;
 	rblock->next_block = NULL;
 	return rblock;
+}
+
+bool is_preprocessor(char *str) {
+	for(int i = 0; i < strlen(str); i++) {
+		// Space or TAB
+		if(str[i] == 32 || str[i] == 9) { continue; }
+		if(str[i] == '#') {
+			return true;
+		}else {
+			return false;
+		}
+	}
+	return false;
 }
 
 
@@ -117,7 +131,7 @@ int main(int argc, char *argv[]) {
 			if(cur_block->type == BLOCKTYPE_HTML) {
 				// HTML code must be outputted (and escape
 				// new lines)
-				fputs("puts(\"", out);
+				fputs("fputs(\"", out);
 				for(int i = 0; i < strlen(buffer); i++) {
 					if(buffer[i] == '\n') {
 						fputs("\\n", out);
@@ -125,10 +139,15 @@ int main(int argc, char *argv[]) {
 						fputc(buffer[i], out);
 					}
 				}
-				fputs("\");", out);
-			}else {
-				// C code is fine as-is
-				fputs(buffer, out);
+				fputs("\", stdout);", out);
+			}else  {
+				// C code is fine as-is, except that
+				// pre-processor directives need a new line
+				if(is_preprocessor(buffer)) {
+					fprintf(out, "\n%s\n", buffer);
+				}else {
+					fputs(buffer, out);
+				}
 			}
 			// Skip the <:: or ::> tags
 			n = fread(buffer, 1,
@@ -156,7 +175,11 @@ int main(int argc, char *argv[]) {
 			}
 			fputs("\");", out);
 		}else {
-			fputs(buffer, out);
+			if(is_preprocessor(buffer)) {
+				fprintf(out, "\n%s\n", buffer);
+			}else {
+				fputs(buffer, out);
+			}
 		}
 
 		fputs("return 0;}", out);

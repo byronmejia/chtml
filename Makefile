@@ -1,2 +1,2 @@
 all:
-	gcc -g main.c -o main
+	gcc -g chpp.c -o chpp

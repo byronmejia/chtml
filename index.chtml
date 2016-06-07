@@ -1,12 +1,15 @@
-<:: int test() { return 5; } ::>
+<:: int foo() {
+	return 5;
+} ::>
+<:: #define BAR 2 ::>
 <!DOCTYPE html>
 <html>
 	<head>
-		<title>CHTML - Test</title>
+		<title>CHTML - Test <::printf("%d", BAR);::></title>
 	</head>
 	<body>
-		<:: for(int i = 0; i < test(); i++) { ::>
-			<h1>Test</h1>
+		<:: for(int i = 0; i < foo(); i++) { ::>
+			<h1>Foo</h1>
 		<:: } ::>
 	</body>
 </html>
